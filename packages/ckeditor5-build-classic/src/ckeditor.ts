@@ -5,6 +5,7 @@
 
 // The editor creator to use.
 import { ClassicEditor as ClassicEditorBase } from '@ckeditor/ckeditor5-editor-classic';
+import { GeneralHtmlSupport } from '@ckeditor/ckeditor5-html-support';
 
 import { Essentials } from '@ckeditor/ckeditor5-essentials';
 import { CKFinderUploadAdapter } from '@ckeditor/ckeditor5-adapter-ckfinder';
@@ -12,6 +13,7 @@ import { Autoformat } from '@ckeditor/ckeditor5-autoformat';
 import { Bold, Italic } from '@ckeditor/ckeditor5-basic-styles';
 import { BlockQuote } from '@ckeditor/ckeditor5-block-quote';
 import { CKBox } from '@ckeditor/ckeditor5-ckbox';
+import { FindAndReplace } from '@ckeditor/ckeditor5-find-and-replace';
 import { CKFinder } from '@ckeditor/ckeditor5-ckfinder';
 import { EasyImage } from '@ckeditor/ckeditor5-easy-image';
 import { Heading } from '@ckeditor/ckeditor5-heading';
@@ -25,6 +27,27 @@ import { PasteFromOffice } from '@ckeditor/ckeditor5-paste-from-office';
 import { Table, TableToolbar } from '@ckeditor/ckeditor5-table';
 import { TextTransformation } from '@ckeditor/ckeditor5-typing';
 import { CloudServices } from '@ckeditor/ckeditor5-cloud-services';
+import { Plugin } from '@ckeditor/ckeditor5-core';
+
+class TranscriptHighlighter extends Plugin {
+	init() {
+		const editor = this.editor;
+
+		// Allow bold attribute on text nodes.
+		editor.model.schema.extend( '$text', { allowAttributes: 'highlight' } );
+		editor.model.schema.setAttributeProperties( 'highlight', {
+			isFormatting: true,
+			copyOnEnter: true
+		} );
+
+        // Build converter from model to view for data and editing pipelines.
+		editor.conversion.attributeToElement( {
+			model: 'highlight',
+			view: 'mark'
+        });
+
+	}
+}
 
 export default class ClassicEditor extends ClassicEditorBase {
 	public static override builtinPlugins = [
@@ -38,6 +61,8 @@ export default class ClassicEditor extends ClassicEditorBase {
 		CKFinder,
 		CloudServices,
 		EasyImage,
+		TranscriptHighlighter,
+		FindAndReplace,
 		Heading,
 		Image,
 		ImageCaption,
@@ -46,6 +71,7 @@ export default class ClassicEditor extends ClassicEditorBase {
 		ImageUpload,
 		Indent,
 		Link,
+		GeneralHtmlSupport,
 		List,
 		MediaEmbed,
 		Paragraph,
@@ -59,11 +85,20 @@ export default class ClassicEditor extends ClassicEditorBase {
 	public static override defaultConfig = {
 		toolbar: {
 			items: [
-				'undo', 'redo',
-				'|', 'heading',
-				'|', 'bold', 'italic',
-				'|', 'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed',
-				'|', 'bulletedList', 'numberedList', 'outdent', 'indent'
+				'fullpage',
+				'findAndReplace',
+				'undo',
+				'redo',
+				'bold', 'italic', 'underline', 'strikethrough', 'code', 'subscript', 'superscript'
+			]
+		},	
+		htmlSupport: {
+			allow: [  {
+				name: /.*/,
+				attributes: true,
+				classes: true,
+				styles: true
+				},
 			]
 		},
 		image: {
